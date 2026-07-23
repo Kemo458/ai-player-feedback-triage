@@ -97,7 +97,7 @@ Reviewer names printed during this live verification have been redacted from thi
 **User**
 
 > Implement manager-authorized per-game deletion with an explicit confirmation interaction. The
-> operation must remove the complete game aggregate—including feedback, analyses, entities, import
+> operation must remove the complete game aggregate including feedback, analyses, entities, import
 > jobs, and summaries without leaving orphaned records.
 
 **Claude**
