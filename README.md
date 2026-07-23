@@ -19,14 +19,41 @@ opening the link never rotates or invalidates it.
 - **Frontend** — React + TypeScript + Vite + TanStack Query + SignalR.
 - **Proxy** — Caddy fronts everything on one origin. **Docker Compose** ties it together.
 
+## Architecture and resilience
+
+Feedback is committed to PostgreSQL before analysis and returns immediately to the caller. Background
+workers claim durable queue rows with `FOR UPDATE SKIP LOCKED`, attach processing leases, and recover
+expired work after a restart. LLM calls therefore never hold open the submission request.
+
+Transient timeouts and upstream `429`/`502`/`503`/`504` failures are rescheduled with bounded
+backoff and jitter. Malformed or schema-invalid model output is retried once and then routed to
+manual review. Every successful response is validated again in application code before storage.
+SignalR accelerates dashboard refreshes, while REST and PostgreSQL remain authoritative if the
+realtime connection drops.
+
+## Prompt design
+
+The Ollama system prompt treats player text as untrusted data and explicitly refuses instructions
+inside the delimited `<feedback>` block. It defines the category, multi-label, severity, toxicity,
+sentiment, summary, and entity rules; includes compact ambiguous examples; and sends a strict JSON
+schema through Ollama's structured-output `format` field. Generation uses temperature `0` and a
+fixed seed for repeatability.
+
+Post-generation validation checks schema version, enums, ranges, summary length and sentence count,
+category/tag consistency, and the rule that `Critical` requires a bug. Entity evidence must occur in
+the original normalized feedback, which drops unsupported model inventions. Low-confidence or
+conflicting results are sent to manual review. See
+[`AnalysisSchema.cs`](backend/src/PlayerFeedback.Core/Analysis/AnalysisSchema.cs) and
+[`AnalysisValidator.cs`](backend/src/PlayerFeedback.Core/Analysis/AnalysisValidator.cs).
+
 ## Quick start (local)
 ```bash
-cp .env.example .env        # a ready-to-run .env is already included for local dev
+cp .env.example .env        # copy the public-safe, ready-to-run local template
 docker compose up -d --build
 open http://localhost:8090
 ```
 Sign in with `manager` / `manager-dev-pass` (from `.env`). A demo game **Royal Match (Demo)** is
-seeded with sample feedback; the local `.env` uses the **Mock** analyzer, so classifications appear
+seeded with sample feedback; the copied `.env` uses the **Mock** analyzer, so classifications appear
 within seconds with no model download.
 
 Public feedback form for the demo game:
@@ -37,6 +64,10 @@ Set `LLM_PROVIDER=Ollama` in `.env`, then:
 ```bash
 docker compose up -d
 docker compose exec ollama ollama pull qwen2.5:3b
+```
+Restart the API after changing providers:
+```bash
+docker compose restart api
 ```
 
 ## Endpoints
@@ -69,5 +100,36 @@ See [`deploy/README.md`](deploy/README.md).
 - **Auth**: a real JWT bearer flow (login → token → `[Authorize]`) backed by a configured manager
   credential + role claims, rather than a full external OIDC provider.
 - **Pagination**: opaque **offset** cursors (the client treats them as opaque tokens per the contract).
+
+## Trade-offs and current limits
+
+- PostgreSQL doubles as the durable queue. This avoids operating RabbitMQ for the interview-sized
+  workload, at the cost of database polling and less sophisticated routing.
+- The deployment uses custom bounded retry scheduling rather than Polly. The behavior is explicit
+  and persisted with each job, but a production service could add circuit breaking and richer
+  telemetry with `Microsoft.Extensions.Http.Resilience`.
+- `qwen2.5:3b` is viable on the CPU-only host and follows the JSON schema reliably, but a larger
+  model or labelled evaluation dataset would be needed before making quality claims.
+- `EnsureCreated()` and idempotent schema patches keep the demo simple. Production would use reviewed
+  EF migrations and versioned rollbacks.
+- JWT manager authentication is sufficient for the assessment; production would use external OIDC,
+  tenant isolation, secret rotation, and explicit submission-token revocation.
+- The scraper has automated pytest coverage. Focused .NET worker/controller tests, frontend tests,
+  end-to-end tests, public rate limiting, and OpenTelemetry remain future hardening rather than
+  completed features.
+
+## AI-assistant usage
+
+Claude and OpenAI Codex were used throughout this assessment. Claude helped iterate on dashboard
+information hierarchy, original-feedback visibility, Google Play reviewer attribution, and per-game
+deletion. Codex reviewed and completed the architecture and documentation, selected and tuned the
+local Qwen deployment, diagnosed summary failures, improved the dashboard and permanent submission
+links, audited the deployed system, and prepared the credential-safe public repository.
+
+AI-generated suggestions were reviewed against the running application, built in Docker, and
+verified through API and browser checks. The author remains responsible for every submitted line and
+should be prepared to explain the queue, prompt, validation, retry, scraping, and UI decisions.
+The sanitized combined conversation export is in
+[`docs/ai-assistant-log.md`](docs/ai-assistant-log.md).
 
 See [`docs/SPEC.md`](docs/SPEC.md) for the complete design and [`CONTRACT.md`](CONTRACT.md) for the API contract.

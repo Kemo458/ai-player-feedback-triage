@@ -2,9 +2,12 @@
 
 ## 1. Project status
 
-This document is the implementation specification and future repository README for the Player Feedback Triage System. It completes the product requirements, system design, API contracts, Google Play ingestion approach, local LLM configuration, deployment plan, resilience rules, security controls, testing strategy, and acceptance criteria.
-
-The implementation itself is not yet present in this repository. Commands and repository paths below define the target project structure and the expected developer experience once the application is implemented.
+This document records the implemented system design and the production-oriented target for the
+Player Feedback Triage System. The application is present in this repository and deployed as an
+interview demonstration. Sections that describe rate limiting, OpenTelemetry, broad automated test
+coverage, circuit breakers, external OIDC, and migration-based schema management are explicit
+production-hardening targets; the README's **Trade-offs and current limits** section is authoritative
+about what is implemented today.
 
 ## 2. Executive summary
 
@@ -608,7 +611,9 @@ Optional input:
 - Locale
 - Contact email only when explicit follow-up consent is given
 
-The public endpoint is rate-limited by IP and token. A honeypot or CAPTCHA can be enabled if abuse appears. The API returns `202 Accepted` after the feedback row is committed.
+The API returns `202 Accepted` after the feedback row is committed. The game-scoped token provides
+the current submission boundary. Production hardening should add rate limiting by IP and token, and
+can add a honeypot or CAPTCHA if abuse appears.
 
 ## 15. LLM design
 
@@ -1136,7 +1141,7 @@ fallback instead of leaving the interface stuck; managers can request a later Qw
 - Strict DTO allowlists and length limits
 - Google Play host/path/package validation
 - No arbitrary URL fetching
-- Rate limiting by user, token, IP, and game
+- Planned production rate limiting by user, token, IP, and game
 - Parameterized EF Core queries
 - React renders feedback as text, never unsanitized HTML
 - CORS allows only configured frontend origins
@@ -1172,14 +1177,16 @@ Suggested defaults:
 | LLM aggregate summary | 120 s | 2 | Runs at lower priority |
 | SignalR send | 5 s | 0 | REST remains authoritative |
 
-A circuit breaker prevents continuous calls to an unavailable scraper or model. Open circuits reschedule jobs instead of rejecting already persisted feedback.
+The implemented durable retry schedule prevents already accepted work from being lost during an
+upstream outage. A production release should additionally add circuit breakers so an unavailable
+scraper or model is not called continuously.
 
 Backpressure is enforced by:
 
 - Three bounded Ollama requests at a time on the OVH host
 - Bounded number of concurrently claimed jobs
-- Database queue-depth metrics
-- Public and manager rate limits
+- Queue-depth visibility through health and dashboard endpoints
+- Planned public and manager rate limits
 - Maximum import size
 
 ## 22. Configuration
@@ -1292,7 +1299,7 @@ Log identifiers and transitions, not content:
 
 Every background log includes `GameId`, `FeedbackId` or `ImportId`, `Attempt`, and a correlation ID.
 
-### 25.2 Metrics
+### 25.2 Production metrics target
 
 - Submission rate
 - Import rate and fetched review count
@@ -1308,9 +1315,14 @@ Every background log includes `GameId`, `FeedbackId` or `ImportId`, `Attempt`, a
 
 ### 25.3 Tracing
 
-Use OpenTelemetry across HTTP requests, database operations, scraper calls, and LLM calls. Never attach raw feedback or prompts to spans.
+Production should use OpenTelemetry across HTTP requests, database operations, scraper calls, and
+LLM calls. Never attach raw feedback or prompts to spans. The interview implementation currently
+uses application logs, activity events, and health endpoints rather than a full telemetry backend.
 
 ## 26. Testing strategy
+
+The Python scraper tests below are implemented. The broader .NET, frontend, integration, and
+end-to-end suites are the recommended next hardening step and are not claimed as complete.
 
 ### 26.1 Unit tests
 
@@ -1485,9 +1497,9 @@ Every pull request should run:
 
 Production deployment requires tagged images and a migration review.
 
-## 30. Definition of done
+## 30. Delivery status
 
-The MVP is complete when all of the following are demonstrated:
+The assessment implementation demonstrates:
 
 - A valid Google Play URL can create a bounded asynchronous import.
 - Invalid hosts, paths, package IDs, counts, languages, and countries are rejected safely.
@@ -1500,10 +1512,12 @@ The MVP is complete when all of the following are demonstrated:
 - Filter-scoped aggregate summaries appear above feedback lists.
 - SignalR causes the dashboard to refetch after completion and reconnects safely.
 - Manager endpoints and game groups are authorized.
-- Public submissions are rate-limited and token-scoped.
+- Public submissions are token-scoped. Rate limiting remains production hardening.
 - Malformed model output, timeout, scraper failure, and partial import are visible and recoverable.
-- Health endpoints, structured logs, and essential metrics exist.
-- Automated tests cover the critical success and failure paths.
+- Health endpoints, structured application logs, and live activity visibility exist. Full
+  OpenTelemetry metrics remain production hardening.
+- Automated scraper tests cover mapping, pagination, and upstream behavior. .NET, frontend, and
+  end-to-end coverage remain future work.
 - The README run instructions work on a clean machine.
 - The public repository contains a sanitized AI-assistant conversation log and explanation of AI usage.
 

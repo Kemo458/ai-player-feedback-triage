@@ -1,5 +1,6 @@
 using PlayerFeedback.Core.Common;
 using PlayerFeedback.Core.Domain;
+using System.Text.RegularExpressions;
 
 namespace PlayerFeedback.Core.Analysis;
 
@@ -32,6 +33,8 @@ public static class AnalysisValidator
         var summary = (raw.Summary ?? string.Empty).Trim();
         if (summary.Length == 0) throw new AnalysisValidationException("Empty summary.");
         if (summary.Length > 240) summary = summary[..240];
+        if (Regex.Matches(summary, @"[.!?]+(?:\s|$)").Count > 1)
+            throw new AnalysisValidationException("Summary must contain at most one sentence.");
 
         var confidence = raw.Confidence ?? 0.0;
         if (double.IsNaN(confidence)) confidence = 0.0;

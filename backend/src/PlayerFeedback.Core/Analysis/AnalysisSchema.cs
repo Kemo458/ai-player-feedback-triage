@@ -27,6 +27,12 @@ Fields:
   name = as written; normalizedName = lowercased/canonical; evidence = a short quote from the feedback
   that mentions it (<=160 chars, MUST be text that appears in the feedback); confidence 0..1.
   Return an empty array if none. Do not invent entities.
+
+Compact examples:
+- "The Frostblade crashes the game when equipped." => primaryCategory Bug, tags [Bug],
+  severity High, toxicity NonToxic, sentiment Negative; include Frostblade only with source evidence.
+- "You idiots should add co-op raids." => primaryCategory Feature, tags [Feature,Toxic],
+  severity Unknown, toxicity Toxic, sentiment Negative. Preserve both applicable labels.
 """;
 
     public static object Format() => new
