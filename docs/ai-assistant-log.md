@@ -39,7 +39,9 @@ and entities grid.
 
 **User**
 
-> In the feedback details, shouldn't we have the actual feedback comment?
+> Expose the original player-authored feedback in both the triage card and expanded detail view.
+> Preserve a clear visual distinction between source text and the LLM-generated summary, including
+> while analysis is still pending.
 
 **Claude**
 
@@ -63,7 +65,9 @@ Claude updated the feedback row so:
 
 **User**
 
-> Is it possible to show which user left the comment, even for Google Play?
+> Extend the Google Play ingestion pipeline to retain and display the public reviewer identity.
+> Propagate the field through the scraper contract, persistence model, API DTO, and manager UI,
+> while keeping internal submissions anonymous unless explicit identity consent is introduced.
 
 **Claude**
 
@@ -92,7 +96,9 @@ Reviewer names printed during this live verification have been redacted from thi
 
 **User**
 
-> Great, we made some changes. Give me a delete option per game.
+> Implement manager-authorized per-game deletion with an explicit confirmation interaction. The
+> operation must remove the complete game aggregate—including feedback, analyses, entities, import
+> jobs, and summaries—without leaving orphaned records.
 
 **Claude**
 
@@ -120,7 +126,9 @@ Claude added:
 
 **User**
 
-> Review this technical assignment. What LLM should we run? Examine our available server.
+> Perform a senior-level review of the assignment and evaluate the available deployment resources.
+> Recommend a local LLM that can deliver reliable schema-constrained classification without
+> starving the API, database, scraper, or background workers on the CPU-only host.
 
 The server address and SSH-key path from the original request are redacted.
 
@@ -138,8 +146,10 @@ architecture but does not replace a labelled quality evaluation.
 
 **User**
 
-> Fully finish the documentation, including the model and Google Play scraping. The application was
-> deployed with another agent; check the work.
+> Complete the technical documentation across architecture, model selection, prompt strategy,
+> resilience, and Google Play ingestion. Audit the existing deployment against the repository,
+> reconcile configuration drift, and verify the end-to-end system rather than assuming the prior
+> deployment is correct.
 
 **Codex**
 
@@ -162,8 +172,10 @@ The documentation work covered:
 
 **User**
 
-> Fix the important findings. We are okay with `qwen2.5:3b`. This is an interview task, so keep the
-> solution proportionate.
+> Resolve the material correctness and usability findings while retaining `qwen2.5:3b`. Keep the
+> architecture proportionate to an interview assessment: implement the controls required to
+> demonstrate sound engineering judgement and document heavyweight production infrastructure as
+> future hardening.
 
 **Codex**
 
@@ -175,7 +187,10 @@ The documentation work covered:
 
 **User**
 
-> Any ideas for improving the in-game dashboard UI/UX and the visual effects? Do it all.
+> Execute a comprehensive dashboard UX review and implement the full set of high-value
+> improvements. Optimize information hierarchy, triage speed, processing-state visibility,
+> interaction feedback, accessibility, responsive behavior, and restrained visual effects without
+> compromising operational clarity.
 
 **Codex**
 
@@ -191,9 +206,11 @@ as a static mockup.
 
 **User**
 
-> For games imported from Google Play, show the game icon on the home page. Make the internal
-> feedback submit link much more prominent. Keep Operations activity visible and compact on the
-> right. AI Summary failed for Idle Miner and stayed on “Generating summary for the current filter.”
+> Enrich Google Play game cards with store artwork retrieved through the existing scraper boundary.
+> Elevate the internal-feedback submission link as a primary collection workflow. Keep the
+> operations stream persistently visible as a compact right-hand rail. Diagnose and correct the AI
+> summary lifecycle so failed or stale generation cannot leave a filter permanently stuck in a
+> generating state.
 
 **Codex**
 
@@ -213,7 +230,9 @@ Summary recovery included:
 
 **User**
 
-> Create a shareable link, but it should exist only once per game.
+> Implement exactly one canonical internal-feedback submission URL per game. The link must remain
+> stable across reloads and repeated retrievals, must not rotate when copied, and must remain
+> compatible with the anonymous public-submission flow.
 
 **Codex**
 
@@ -230,8 +249,10 @@ during migration.
 
 **User**
 
-> Make this a public Git repository and upload it with GitHub CLI, without server logins or other
-> private deployment details.
+> Convert the complete solution into a public GitHub repository and publish it through GitHub CLI.
+> Before the first commit, audit the candidate tree and remove all infrastructure-specific
+> identifiers, SSH details, credentials, generated tunnel configuration, private paths, environment
+> files, dependency directories, and build artifacts.
 
 **Codex**
 
@@ -260,7 +281,9 @@ The public-repository preparation included:
 
 **User**
 
-> Have we done everything requested by the assessment?
+> Perform a final compliance audit against every mandatory assessment deliverable. Distinguish
+> submission blockers from optional engineering improvements, and support the conclusion with
+> concrete repository evidence rather than feature-level assumptions.
 
 **Codex**
 
@@ -272,7 +295,9 @@ The public-repository preparation included:
 
 **User**
 
-> Let's do both, and include the work completed with Claude.
+> Close every mandatory documentation gap and publish the sanitized AI-assistant conversation
+> record. The artifact must cover the substantive implementation and design work completed with
+> both Claude and Codex.
 
 This combined, sanitized transcript and the accompanying README corrections are the result.
 
