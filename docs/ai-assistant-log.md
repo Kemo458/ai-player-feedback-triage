@@ -98,7 +98,7 @@ Reviewer names printed during this live verification have been redacted from thi
 
 > Implement manager-authorized per-game deletion with an explicit confirmation interaction. The
 > operation must remove the complete game aggregate—including feedback, analyses, entities, import
-> jobs, and summaries—without leaving orphaned records.
+> jobs, and summaries without leaving orphaned records.
 
 **Claude**
 
@@ -127,8 +127,8 @@ Claude added:
 **User**
 
 > Perform a senior-level review of the assignment and evaluate the available deployment resources.
-> Recommend a local LLM that can deliver reliable schema-constrained classification without
-> starving the API, database, scraper, or background workers on the CPU-only host.
+> Recommend a local LLM that can deliver reliable schema constrained classification without
+> starving the API, database, scraper, or background workers on the CPU only host.
 
 The server address and SSH-key path from the original request are redacted.
 
@@ -148,7 +148,7 @@ architecture but does not replace a labelled quality evaluation.
 
 > Complete the technical documentation across architecture, model selection, prompt strategy,
 > resilience, and Google Play ingestion. Audit the existing deployment against the repository,
-> reconcile configuration drift, and verify the end-to-end system rather than assuming the prior
+> reconcile configuration drift, and verify the end to end system rather than assuming the prior
 > deployment is correct.
 
 **Codex**
