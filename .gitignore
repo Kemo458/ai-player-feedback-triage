@@ -1,0 +1,35 @@
+# Environment and local credentials (keep only documented templates).
+.env
+.env.*
+!.env.example
+!deploy/.env.ovh.example
+*.env.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.log
+.DS_Store
+
+# .NET
+bin/
+obj/
+*.user
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Cloudflare
+deploy/cloudflared/*.json
+deploy/cloudflared/cert.pem
+deploy/cloudflared/config.yml

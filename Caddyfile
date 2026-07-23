@@ -1,0 +1,15 @@
+# Single-origin reverse proxy. Frontend calls same-origin /api and /hubs.
+:80 {
+	encode gzip zstd
+
+	# API + realtime + docs + health -> ASP.NET Core
+	@backend path /api/* /hubs/* /health/* /swagger*
+	handle @backend {
+		reverse_proxy api:8080
+	}
+
+	# Everything else -> SPA
+	handle {
+		reverse_proxy web:80
+	}
+}

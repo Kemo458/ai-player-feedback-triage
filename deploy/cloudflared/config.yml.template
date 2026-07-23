@@ -1,0 +1,8 @@
+# Filled in at deploy time (deploy/setup-tunnel.sh replaces __TUNNEL_ID__).
+tunnel: __TUNNEL_ID__
+credentials-file: /etc/cloudflared/__TUNNEL_ID__.json
+
+ingress:
+  - hostname: __APP_HOSTNAME__
+    service: http://caddy:80
+  - service: http_status:404

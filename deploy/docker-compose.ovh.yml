@@ -1,0 +1,18 @@
+# OVH overlay: adds the Cloudflare tunnel that publishes the app at the
+# hostname configured by deploy/setup-tunnel.sh. Use together with the base compose:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.ovh.yml up -d --build
+#
+# The tunnel reaches the app over the internal docker network (service `caddy`),
+# so NO public port is opened on the server.
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./deploy/cloudflared:/etc/cloudflared:ro
+    depends_on:
+      - caddy
+    networks:
+      - pf-backend
